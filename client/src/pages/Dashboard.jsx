@@ -1,15 +1,35 @@
 import { useContext, useEffect, useState } from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    ArcElement,
+    Tooltip,
+    Legend,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title
+} from 'chart.js';
+import { Pie } from 'react-chartjs-2';
 import AuthContext from '../context/AuthContext';
 import axios from '../utils/axios';
+import { useNavigate } from 'react-router-dom';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
+ChartJS.register(
+    ArcElement,
+    Tooltip,
+    Legend,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title
+);
 
 const Dashboard = () => {
     const { user } = useContext(AuthContext);
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchExpenses = async () => {
@@ -25,13 +45,19 @@ const Dashboard = () => {
         fetchExpenses();
     }, []);
 
-    const totalExpense = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+    const totalExpense = expenses.reduce(
+        (acc, curr) => acc + curr.amount,
+        0
+    );
 
-    // Prepare Chart Data
+    // ⭐ Category Chart Data
     const categories = [...new Set(expenses.map((e) => e.category))];
-    const categoryData = categories.map((cat) => {
-        return expenses.filter((e) => e.category === cat).reduce((acc, curr) => acc + curr.amount, 0);
-    });
+
+    const categoryData = categories.map((cat) =>
+        expenses
+            .filter((e) => e.category === cat)
+            .reduce((acc, curr) => acc + curr.amount, 0)
+    );
 
     const pieData = {
         labels: categories,
@@ -60,43 +86,105 @@ const Dashboard = () => {
         ],
     };
 
+    // ⭐ Chart Responsive Options
+    const pieOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 1200
+        }
+    };
+
+    if (loading) return <p>Loading...</p>;
+
     return (
         <div>
-            <h1 className="text-3xl font-semibold text-gray-800">Dashboard</h1>
-            <p className="mt-4 text-gray-600">Welcome back, {user?.name}!</p>
+            <h1 className="text-3xl font-semibold text-gray-800">
+                Dashboard
+            </h1>
 
+            <p className="mt-4 text-gray-600">
+                Welcome back, {user?.name}!
+            </p>
+
+            {/* ⭐ Stats Cards */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
-                    <h2 className="text-xl font-bold text-gray-700">Total Expenses</h2>
-                    <p className="mt-2 text-3xl font-semibold text-gray-800">${totalExpense.toFixed(2)}</p>
+                    <h2 className="text-xl font-bold text-gray-700">
+                        Total Expenses
+                    </h2>
+                    <p className="mt-2 text-3xl font-semibold">
+                        ${totalExpense.toFixed(2)}
+                    </p>
                 </div>
+
                 <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
-                    <h2 className="text-xl font-bold text-gray-700">Transaction Count</h2>
-                    <p className="mt-2 text-3xl font-semibold text-gray-800">{expenses.length}</p>
+                    <h2 className="text-xl font-bold text-gray-700">
+                        Transaction Count
+                    </h2>
+                    <p className="mt-2 text-3xl font-semibold">
+                        {expenses.length}
+                    </p>
                 </div>
+
                 <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-red-500">
-                    <h2 className="text-xl font-bold text-gray-700">Recent Activity</h2>
+                    <h2 className="text-xl font-bold text-gray-700">
+                        Recent Activity
+                    </h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        {expenses.length > 0 ? `Last: ${expenses[0].description} ($${expenses[0].amount})` : 'No transactions'}
+                        {expenses.length > 0
+                            ? `Last: ${expenses[0].description} ($${expenses[0].amount})`
+                            : 'No transactions'}
                     </p>
                 </div>
             </div>
 
+            {/* ⭐ Charts + Actions */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                {/* ⭐ Pie Chart */}
                 <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-bold text-gray-700 mb-4">Expenses by Category</h2>
-                    <div className="h-64 flex justify-center">
-                        {expenses.length > 0 ? <Pie data={pieData} /> : <p className="flex items-center">No data to display</p>}
+                    <h2 className="text-xl font-bold mb-4">
+                        Expenses by Category
+                    </h2>
+
+                    <div className="relative w-full h-64">
+                        {expenses.length > 0 ? (
+                            <Pie
+                                data={pieData}
+                                options={pieOptions}
+                            />
+                        ) : (
+                            <p className="flex items-center justify-center h-full">
+                                No data to display
+                            </p>
+                        )}
                     </div>
                 </div>
-                {/* Placeholder for future Budget/Trend chart */}
+
+                {/* ⭐ Quick Actions */}
                 <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-bold text-gray-700 mb-4">Quick Actions</h2>
+                    <h2 className="text-xl font-bold mb-4">
+                        Quick Actions
+                    </h2>
+
                     <div className="flex flex-col gap-4">
-                        <button className="w-full py-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200">View Full History</button>
-                        <button className="w-full py-2 bg-green-100 text-green-600 rounded-md hover:bg-green-200">Set Monthly Budget</button>
+                        <button
+                            onClick={() => navigate('/expenses')}
+                            className="w-full py-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200"
+                        >
+                            View Full History
+                        </button>
+
+                        <button
+                            onClick={() => navigate('/budget')}
+                            className="w-full py-2 bg-green-100 text-green-600 rounded-md hover:bg-green-200"
+                        >
+                            Set Monthly Budget
+                        </button>
                     </div>
                 </div>
+
             </div>
         </div>
     );
