@@ -29,6 +29,10 @@ const Dashboard = () => {
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // ⭐ NEW STATES
+    const [budget, setBudget] = useState(null);
+    const [monthlyTotal, setMonthlyTotal] = useState(0);
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -42,7 +46,28 @@ const Dashboard = () => {
                 setLoading(false);
             }
         };
+
+        const fetchBudget = async () => {
+            try {
+                const { data } = await axios.get('/budget');
+                if (data) setBudget(data.amount);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        const fetchMonthlyTotal = async () => {
+            try {
+                const { data } = await axios.get('/expenses/total/month');
+                setMonthlyTotal(data.total);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
         fetchExpenses();
+        fetchBudget();
+        fetchMonthlyTotal();
     }, []);
 
     const totalExpense = expenses.reduce(
@@ -50,7 +75,6 @@ const Dashboard = () => {
         0
     );
 
-    // ⭐ Category Chart Data
     const categories = [...new Set(expenses.map((e) => e.category))];
 
     const categoryData = categories.map((cat) =>
@@ -86,16 +110,18 @@ const Dashboard = () => {
         ],
     };
 
-    // ⭐ Chart Responsive Options
     const pieOptions = {
         responsive: true,
         maintainAspectRatio: false,
         animation: {
-            duration: 1200
-        }
+            duration: 1200,
+        },
     };
 
     if (loading) return <p>Loading...</p>;
+
+    const remaining =
+        budget !== null ? budget - monthlyTotal : null;
 
     return (
         <div>
@@ -107,14 +133,58 @@ const Dashboard = () => {
                 Welcome back, {user?.name}!
             </p>
 
-            {/* ⭐ Stats Cards */}
+            {/* ⭐ BUDGET SUMMARY */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+                    <h2 className="text-sm text-gray-600">
+                        Monthly Budget
+                    </h2>
+                    <p className="mt-2 text-2xl font-bold">
+                        ₹{budget ?? '—'}
+                    </p>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
+                    <h2 className="text-sm text-gray-600">
+                        Spent This Month
+                    </h2>
+                    <p className="mt-2 text-2xl font-bold">
+                        ₹{monthlyTotal}
+                    </p>
+                </div>
+
+                <div
+                    className={`bg-white p-6 rounded-lg shadow-md border-l-4 ${
+                        remaining !== null && remaining >= 0
+                            ? 'border-green-500'
+                            : 'border-red-500'
+                    }`}
+                >
+                    <h2 className="text-sm text-gray-600">
+                        {remaining !== null && remaining >= 0
+                            ? 'Remaining Budget'
+                            : 'Over Budget'}
+                    </h2>
+                    <p
+                        className={`mt-2 text-2xl font-bold ${
+                            remaining !== null && remaining >= 0
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                        }`}
+                    >
+                        ₹{remaining !== null ? Math.abs(remaining) : '—'}
+                    </p>
+                </div>
+            </div>
+
+            {/* ⭐ EXISTING STATS */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
                     <h2 className="text-xl font-bold text-gray-700">
                         Total Expenses
                     </h2>
                     <p className="mt-2 text-3xl font-semibold">
-                        ${totalExpense.toFixed(2)}
+                        ₹{totalExpense.toFixed(2)}
                     </p>
                 </div>
 
@@ -133,16 +203,14 @@ const Dashboard = () => {
                     </h2>
                     <p className="mt-2 text-sm text-gray-600">
                         {expenses.length > 0
-                            ? `Last: ${expenses[0].description} ($${expenses[0].amount})`
+                            ? `Last: ${expenses[0].description} (₹${expenses[0].amount})`
                             : 'No transactions'}
                     </p>
                 </div>
             </div>
 
-            {/* ⭐ Charts + Actions */}
+            {/* ⭐ CHART + ACTIONS */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-
-                {/* ⭐ Pie Chart */}
                 <div className="bg-white p-6 rounded-lg shadow-md">
                     <h2 className="text-xl font-bold mb-4">
                         Expenses by Category
@@ -162,7 +230,6 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* ⭐ Quick Actions */}
                 <div className="bg-white p-6 rounded-lg shadow-md">
                     <h2 className="text-xl font-bold mb-4">
                         Quick Actions
@@ -184,7 +251,6 @@ const Dashboard = () => {
                         </button>
                     </div>
                 </div>
-
             </div>
         </div>
     );

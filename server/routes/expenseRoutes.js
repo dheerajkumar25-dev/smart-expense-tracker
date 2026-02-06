@@ -13,6 +13,38 @@ router.get('/', protect, async (req, res) => {
     }
 });
 
+/* GET total expenses for current month */
+router.get('/total/month', protect, async (req, res) => {
+    try {
+        const startOfMonth = new Date(
+            new Date().getFullYear(),
+            new Date().getMonth(),
+            1
+        );
+
+        const result = await Expense.aggregate([
+            {
+                $match: {
+                    user: req.user._id,
+                    date: { $gte: startOfMonth }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: "$amount" }
+                }
+            }
+        ]);
+
+        res.json({
+            total: result.length > 0 ? result[0].total : 0
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 /* CREATE expense */
 router.post('/', protect, async (req, res) => {
     try {
@@ -43,7 +75,7 @@ router.delete('/:id', protect, async (req, res) => {
             return res.status(401).json({ message: 'Not authorized' });
         }
 
-        await expense.deleteOne(); // ✅ PERMANENT DELETE
+        await expense.deleteOne();
         res.json({ message: 'Expense removed' });
     } catch (error) {
         res.status(500).json({ message: error.message });
