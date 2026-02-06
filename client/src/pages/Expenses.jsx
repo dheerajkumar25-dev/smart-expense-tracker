@@ -56,22 +56,30 @@ const Expenses = () => {
 
     const handleExport = () => {
         const headers = ['Description,Amount,Category,Date'];
-        const rows = expenses.map(e => `${e.description},${e.amount},${e.category},${moment(e.date).format('YYYY-MM-DD')}`);
-        const csvContent = "data:text/csv;charset=utf-8," + headers.concat(rows).join("\n");
+        const rows = expenses.map(e =>
+            `${e.description},₹${e.amount},${e.category},${moment(e.date).format('YYYY-MM-DD')}`
+        );
+        const csvContent =
+            'data:text/csv;charset=utf-8,' + headers.concat(rows).join('\n');
         const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "expenses.csv");
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', 'expenses.csv');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
 
+    if (loading) return <p>Loading...</p>;
+
     return (
         <div>
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-semibold text-gray-800">Expenses</h1>
-                <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                <button
+                    onClick={handleExport}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
                     Export to CSV
                 </button>
             </div>
@@ -79,37 +87,48 @@ const Expenses = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                 {/* Add Expense Form */}
                 <div className="bg-white p-6 rounded-lg shadow-md h-fit">
-                    <h2 className="text-xl font-bold text-gray-700 mb-4">Add New Expense</h2>
+                    <h2 className="text-xl font-bold text-gray-700 mb-4">
+                        Add New Expense
+                    </h2>
+
                     <form onSubmit={handleSubmit}>
                         <div className="mb-4">
-                            <label className="block text-gray-700">Description</label>
+                            <label className="block text-gray-700">
+                                Description
+                            </label>
                             <input
                                 type="text"
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
-                                className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                className="w-full mt-2 px-4 py-2 border rounded-md"
                                 required
                             />
                         </div>
+
                         <div className="mb-4">
-                            <label className="block text-gray-700">Amount</label>
+                            <label className="block text-gray-700">
+                                Amount (₹)
+                            </label>
                             <input
                                 type="number"
                                 name="amount"
                                 value={formData.amount}
                                 onChange={handleChange}
-                                className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                className="w-full mt-2 px-4 py-2 border rounded-md"
                                 required
                             />
                         </div>
+
                         <div className="mb-4">
-                            <label className="block text-gray-700">Category</label>
+                            <label className="block text-gray-700">
+                                Category
+                            </label>
                             <select
                                 name="category"
                                 value={formData.category}
                                 onChange={handleChange}
-                                className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                className="w-full mt-2 px-4 py-2 border rounded-md"
                             >
                                 <option value="Food">Food</option>
                                 <option value="Transport">Transport</option>
@@ -119,6 +138,7 @@ const Expenses = () => {
                                 <option value="Other">Other</option>
                             </select>
                         </div>
+
                         <div className="mb-4">
                             <label className="block text-gray-700">Date</label>
                             <input
@@ -126,61 +146,68 @@ const Expenses = () => {
                                 name="date"
                                 value={formData.date}
                                 onChange={handleChange}
-                                className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                className="w-full mt-2 px-4 py-2 border rounded-md"
                             />
                         </div>
-                        <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center">
-                            <Plus size={20} className="mr-2" /> Add Expense
+
+                        <button
+                            type="submit"
+                            className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center"
+                        >
+                            <Plus size={20} className="mr-2" />
+                            Add Expense
                         </button>
                     </form>
                 </div>
 
                 {/* Expense List */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-bold text-gray-700 mb-4">Recent Transactions</h2>
+                    <h2 className="text-xl font-bold text-gray-700 mb-4">
+                        Recent Transactions
+                    </h2>
+
                     <div className="overflow-x-auto">
                         <table className="min-w-full leading-normal">
                             <thead>
                                 <tr>
-                                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-5 py-3 bg-gray-100 text-left text-xs font-semibold">
                                         Description
                                     </th>
-                                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-5 py-3 bg-gray-100 text-left text-xs font-semibold">
                                         Amount
                                     </th>
-                                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-5 py-3 bg-gray-100 text-left text-xs font-semibold">
                                         Category
                                     </th>
-                                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-5 py-3 bg-gray-100 text-left text-xs font-semibold">
                                         Date
                                     </th>
-                                    <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <th className="px-5 py-3 bg-gray-100 text-left text-xs font-semibold">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
+
                             <tbody>
                                 {expenses.map((expense) => (
                                     <tr key={expense._id}>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                            <p className="text-gray-900 whitespace-no-wrap">{expense.description}</p>
+                                        <td className="px-5 py-4 border-b">
+                                            {expense.description}
                                         </td>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                            <p className="text-gray-900 whitespace-no-wrap">${expense.amount}</p>
+                                        <td className="px-5 py-4 border-b font-semibold">
+                                            ₹{expense.amount}
                                         </td>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                            <span className="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
-                                                <span aria-hidden className="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
-                                                <span className="relative">{expense.category}</span>
-                                            </span>
+                                        <td className="px-5 py-4 border-b">
+                                            {expense.category}
                                         </td>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                            <p className="text-gray-900 whitespace-no-wrap">
-                                                {moment(expense.date).format('MMM Do YY')}
-                                            </p>
+                                        <td className="px-5 py-4 border-b">
+                                            {moment(expense.date).format('MMM Do YY')}
                                         </td>
-                                        <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                                            <button onClick={() => handleDelete(expense._id)} className="text-red-600 hover:text-red-900">
+                                        <td className="px-5 py-4 border-b">
+                                            <button
+                                                onClick={() => handleDelete(expense._id)}
+                                                className="text-red-600 hover:text-red-900"
+                                            >
                                                 <Trash2 size={18} />
                                             </button>
                                         </td>
@@ -188,7 +215,12 @@ const Expenses = () => {
                                 ))}
                             </tbody>
                         </table>
-                        {expenses.length === 0 && <p className="text-center mt-4 text-gray-500">No expenses found.</p>}
+
+                        {expenses.length === 0 && (
+                            <p className="text-center mt-4 text-gray-500">
+                                No expenses found.
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
