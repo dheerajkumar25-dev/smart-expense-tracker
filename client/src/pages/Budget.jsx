@@ -133,8 +133,17 @@ const Budget = () => {
                 </div>
             </div>
 
-            {/* CARD */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow max-w-md">
+            {/* CARD (HOVER LIFT ADDED HERE) */}
+            <div
+                className="
+                    bg-white dark:bg-gray-800
+                    p-6 rounded-xl max-w-md
+                    shadow-md
+                    transition-all duration-300
+                    hover:-translate-y-1
+                    hover:shadow-xl
+                "
+            >
                 <label className="block font-medium mb-2">
                     Monthly Budget ({currencySymbol[currency]})
                 </label>

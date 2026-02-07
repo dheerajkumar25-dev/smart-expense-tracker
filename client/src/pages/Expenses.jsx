@@ -309,36 +309,29 @@ const Expenses = () => {
                     </h2>
 
                     <form onSubmit={handleSubmit} className="space-y-3">
+                        {/* unchanged form */}
                         <input
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
                             placeholder="Description"
-                            className="w-full p-2 border rounded
-                                       bg-white dark:bg-gray-700
-                                       border-gray-300 dark:border-gray-600"
+                            className="w-full p-2 border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
                             required
                         />
-
                         <input
                             name="amount"
                             type="number"
                             value={formData.amount}
                             onChange={handleChange}
                             placeholder="Amount"
-                            className="w-full p-2 border rounded
-                                       bg-white dark:bg-gray-700
-                                       border-gray-300 dark:border-gray-600"
+                            className="w-full p-2 border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
                             required
                         />
-
                         <select
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
-                            className="w-full p-2 border rounded
-                                       bg-white dark:bg-gray-700
-                                       border-gray-300 dark:border-gray-600"
+                            className="w-full p-2 border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
                         >
                             {PRESET_CATEGORIES.map(c => (
                                 <option key={c}>{c}</option>
@@ -352,9 +345,7 @@ const Expenses = () => {
                                 value={formData.customCategory}
                                 onChange={handleChange}
                                 placeholder="Enter custom category"
-                                className="w-full p-2 border rounded
-                                           bg-white dark:bg-gray-700
-                                           border-gray-300 dark:border-gray-600"
+                                className="w-full p-2 border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
                                 required
                             />
                         )}
@@ -364,15 +355,10 @@ const Expenses = () => {
                             name="date"
                             value={formData.date}
                             onChange={handleChange}
-                            className="w-full p-2 border rounded
-                                       bg-white dark:bg-gray-700
-                                       border-gray-300 dark:border-gray-600"
+                            className="w-full p-2 border rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600"
                         />
 
-                        <button
-                            className="w-full bg-blue-600 hover:bg-blue-700
-                                       text-white py-2 rounded transition"
-                        >
+                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded transition">
                             {editingId ? 'Update Expense' : 'Add Expense'}
                         </button>
                     </form>
@@ -395,7 +381,9 @@ const Expenses = () => {
                                 <tr
                                     key={e._id}
                                     className="border-b dark:border-gray-700
-                                               hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                                               transition-all duration-200
+                                               hover:bg-gray-50 dark:hover:bg-gray-700
+                                               hover:translate-x-2 hover:shadow-sm"
                                 >
                                     <td className="p-3">{e.description}</td>
                                     <td className="p-3 font-semibold">

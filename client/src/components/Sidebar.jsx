@@ -16,12 +16,14 @@ const Sidebar = () => {
     ];
 
     return (
-        <div className="
-            flex flex-col w-64 h-screen px-4 py-8
-            bg-white dark:bg-gray-900
-            border-r border-gray-200 dark:border-gray-700
-            transition-colors duration-300
-        ">
+        <div
+            className="
+                flex flex-col w-64 h-screen px-4 py-8
+                bg-white dark:bg-gray-900
+                border-r border-gray-200 dark:border-gray-700
+                transition-colors duration-300
+            "
+        >
             {/* Logo */}
             <h2 className="text-3xl font-bold text-center text-blue-600 dark:text-blue-400">
                 Tracker
@@ -39,7 +41,8 @@ const Sidebar = () => {
                                 to={item.path}
                                 className={`
                                     flex items-center px-4 py-2 mt-4 rounded-md
-                                    transition-colors duration-200
+                                    transform transition-all duration-200
+                                    hover:translate-x-2
                                     ${
                                         active
                                             ? 'bg-blue-100 text-blue-700 dark:bg-gray-800 dark:text-blue-400'
@@ -61,9 +64,10 @@ const Sidebar = () => {
                     onClick={logout}
                     className="
                         flex items-center px-4 py-2 mt-6 rounded-md
+                        transform transition-all duration-200
+                        hover:translate-x-2
                         text-gray-600 dark:text-gray-300
                         hover:bg-gray-200 dark:hover:bg-gray-800
-                        transition-colors duration-200
                     "
                 >
                     <LogOut size={20} />

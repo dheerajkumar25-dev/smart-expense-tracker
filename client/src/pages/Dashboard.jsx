@@ -93,6 +93,13 @@ const Dashboard = ({ darkMode, setDarkMode }) => {
 
     const lastExpense = expenses[0];
 
+    // ✅ HOVER CARD CLASS (ONLY ADDITION)
+    const cardClass = `
+        bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm
+        transition-all duration-300
+        hover:-translate-y-1 hover:shadow-lg
+    `;
+
     return (
         <div className="space-y-10 text-gray-900 dark:text-gray-100 transition-colors">
 
@@ -110,7 +117,6 @@ const Dashboard = ({ darkMode, setDarkMode }) => {
                                 border border-gray-200 dark:border-gray-700
                                 px-4 py-2 rounded-lg shadow-sm">
 
-                    {/* Currency */}
                     <select
                         value={currency}
                         onChange={handleCurrencyChange}
@@ -122,7 +128,6 @@ const Dashboard = ({ darkMode, setDarkMode }) => {
                         <option value="USD">$ USD</option>
                     </select>
 
-                    {/* Dark Mode Toggle */}
                     <button
                         onClick={() => setDarkMode(!darkMode)}
                         title="Toggle theme"
@@ -133,25 +138,23 @@ const Dashboard = ({ darkMode, setDarkMode }) => {
                 </div>
             </div>
 
-            {/* ===== REST OF UI (UNCHANGED) ===== */}
-
             {/* TOP SUMMARY */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                <div className={cardClass}>
                     <p className="text-sm text-gray-500">Monthly Budget</p>
                     <p className="mt-2 text-3xl font-extrabold">
                         {currencySymbol}{budget ?? '—'}
                     </p>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                <div className={cardClass}>
                     <p className="text-sm text-gray-500">Spent This Month</p>
                     <p className="mt-2 text-3xl font-extrabold">
                         {currencySymbol}{monthlyTotal}
                     </p>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                <div className={cardClass}>
                     <p className="text-sm text-gray-500">
                         {remaining >= 0 ? 'Remaining Budget' : 'Over Budget'}
                     </p>
@@ -168,14 +171,14 @@ const Dashboard = ({ darkMode, setDarkMode }) => {
 
             {/* TRANSACTION + RECENT */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                <div className={cardClass}>
                     <p className="text-sm text-gray-500">Transaction Count</p>
                     <p className="mt-2 text-4xl font-bold">
                         {expenses.length}
                     </p>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                <div className={cardClass}>
                     <p className="text-sm text-gray-500">Recent Activity</p>
                     {lastExpense ? (
                         <p className="mt-2 font-semibold">
@@ -193,7 +196,7 @@ const Dashboard = ({ darkMode, setDarkMode }) => {
             </div>
 
             {/* BUDGET USED */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+            <div className={cardClass}>
                 <div className="flex justify-between mb-2">
                     <p className="font-semibold">Budget Used</p>
                     <p className="font-semibold">{usagePercent}%</p>
@@ -215,7 +218,7 @@ const Dashboard = ({ darkMode, setDarkMode }) => {
 
             {/* CHART + ACTIONS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                <div className={cardClass}>
                     <h2 className="text-lg font-semibold mb-4">
                         Expenses by Category
                     </h2>
@@ -226,7 +229,7 @@ const Dashboard = ({ darkMode, setDarkMode }) => {
                     )}
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                <div className={cardClass}>
                     <h2 className="text-lg font-semibold mb-4">
                         Quick Actions
                     </h2>
