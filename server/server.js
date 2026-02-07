@@ -16,6 +16,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
 app.use('/api/budget', require('./routes/budgetRoutes')); // ✅ REQUIRED
 

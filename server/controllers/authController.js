@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 
@@ -30,15 +29,17 @@ const registerUser = asyncHandler(async (req, res) => {
     const user = await User.create({
         name,
         email,
-        password
+        password,
+        // currency default = INR (from model)
     });
 
     if (user) {
         res.status(201).json({
-            _id: user.id,
+            _id: user._id,
             name: user.name,
             email: user.email,
-            token: generateToken(user._id)
+            currency: user.currency, // ✅ important
+            token: generateToken(user._id),
         });
     } else {
         res.status(400);
@@ -46,7 +47,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Authenticate a user
+// @desc    Authenticate user
 // @route   POST /api/auth/login
 // @access  Public
 const loginUser = asyncHandler(async (req, res) => {
@@ -56,10 +57,11 @@ const loginUser = asyncHandler(async (req, res) => {
 
     if (user && (await user.matchPassword(password))) {
         res.json({
-            _id: user.id,
+            _id: user._id,
             name: user.name,
             email: user.email,
-            token: generateToken(user._id)
+            currency: user.currency, // ✅ correct
+            token: generateToken(user._id),
         });
     } else {
         res.status(401);
@@ -67,7 +69,36 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 });
 
+// ✅ PHASE 2: Update user currency
+// @desc    Update currency preference
+// @route   PUT /api/auth/currency
+// @access  Private
+const updateCurrency = asyncHandler(async (req, res) => {
+    const { currency } = req.body;
+
+    if (!currency) {
+        res.status(400);
+        throw new Error('Currency is required');
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+
+    user.currency = currency;
+    await user.save();
+
+    res.json({
+        message: 'Currency updated successfully',
+        currency: user.currency,
+    });
+});
+
 module.exports = {
     registerUser,
     loginUser,
+    updateCurrency, // ✅ NEW EXPORT
 };

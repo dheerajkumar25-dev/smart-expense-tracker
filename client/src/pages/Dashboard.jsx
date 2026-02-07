@@ -21,6 +21,19 @@ const Dashboard = () => {
     const [monthlyTotal, setMonthlyTotal] = useState(0);
     const [loading, setLoading] = useState(true);
 
+    // 🌍 Currency State
+    const [currency, setCurrency] = useState(
+        localStorage.getItem('currency') || 'INR'
+    );
+
+    const currencySymbol = currency === 'USD' ? '$' : '₹';
+
+    const handleCurrencyChange = (e) => {
+        const value = e.target.value;
+        setCurrency(value);
+        localStorage.setItem('currency', value);
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -48,6 +61,7 @@ const Dashboard = () => {
     if (loading) return <p>Loading...</p>;
 
     const remaining = budget !== null ? budget - monthlyTotal : null;
+
     const usagePercent =
         budget && budget > 0
             ? ((monthlyTotal / budget) * 100).toFixed(1)
@@ -81,24 +95,44 @@ const Dashboard = () => {
 
     return (
         <div>
-            <h1 className="text-3xl font-semibold text-gray-800">
-                Dashboard
-            </h1>
+            {/* HEADER + CURRENCY */}
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-semibold text-gray-800">
+                        Dashboard
+                    </h1>
+                    <p className="mt-2 text-gray-600">
+                        Welcome back, {user?.name} 👋
+                    </p>
+                </div>
 
-            <p className="mt-2 text-gray-600">
-                Welcome back, {user?.name} 👋
-            </p>
+                <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Currency:</span>
+                    <select
+                        value={currency}
+                        onChange={handleCurrencyChange}
+                        className="border px-3 py-1 rounded-md text-sm"
+                    >
+                        <option value="INR">₹ INR</option>
+                        <option value="USD">$ USD</option>
+                    </select>
+                </div>
+            </div>
 
             {/* TOP SUMMARY */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow">
                     <p className="text-sm text-gray-500">Monthly Budget</p>
-                    <p className="text-2xl font-bold">₹{budget ?? '—'}</p>
+                    <p className="text-2xl font-bold">
+                        {currencySymbol}{budget ?? '—'}
+                    </p>
                 </div>
 
                 <div className="bg-white p-6 rounded-lg shadow">
                     <p className="text-sm text-gray-500">Spent This Month</p>
-                    <p className="text-2xl font-bold">₹{monthlyTotal}</p>
+                    <p className="text-2xl font-bold">
+                        {currencySymbol}{monthlyTotal}
+                    </p>
                 </div>
 
                 <div className="bg-white p-6 rounded-lg shadow">
@@ -110,12 +144,13 @@ const Dashboard = () => {
                             remaining >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}
                     >
-                        ₹{remaining !== null ? Math.abs(remaining) : '—'}
+                        {currencySymbol}
+                        {remaining !== null ? Math.abs(remaining) : '—'}
                     </p>
                 </div>
             </div>
 
-            {/* ✅ TRANSACTION + RECENT (MOVED UP) */}
+            {/* TRANSACTION + RECENT */}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow">
                     <p className="text-sm text-gray-500">Transaction Count</p>
@@ -126,7 +161,8 @@ const Dashboard = () => {
                     <p className="text-sm text-gray-500">Recent Activity</p>
                     {lastExpense ? (
                         <p className="mt-1 font-medium">
-                            {lastExpense.description} (₹{lastExpense.amount})
+                            {lastExpense.description} (
+                            {currencySymbol}{lastExpense.amount})
                         </p>
                     ) : (
                         <p>No transactions</p>
@@ -134,7 +170,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* ✅ BUDGET USED (NOW BELOW) */}
+            {/* BUDGET USED */}
             <div className="mt-6 bg-white p-6 rounded-lg shadow">
                 <div className="flex justify-between mb-2">
                     <p className="font-semibold">Budget Used</p>
