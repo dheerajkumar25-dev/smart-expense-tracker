@@ -172,7 +172,6 @@ const Expenses = () => {
     const convertAmount = amount =>
         (amount * currencyRates[currency]).toFixed(2);
 
-    // ✅ SAVE CURRENCY PER USER (BACKEND + LOCAL STORAGE)
     const handleCurrencyChange = async newCurrency => {
         try {
             await axios.put('/auth/currency', { currency: newCurrency });
@@ -227,13 +226,13 @@ const Expenses = () => {
         <div>
             {/* HEADER */}
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-semibold">Expenses</h1>
+                <h1 className="text-3xl font-semibold text-gray-800">Expenses</h1>
 
                 <div className="flex gap-3">
                     <select
                         value={currency}
                         onChange={e => handleCurrencyChange(e.target.value)}
-                        className="border px-3 py-2 rounded-md"
+                        className="border px-3 py-2 rounded-md text-sm"
                     >
                         <option value="INR">₹ INR</option>
                         <option value="USD">$ USD</option>
@@ -242,7 +241,7 @@ const Expenses = () => {
 
                     <button
                         onClick={exportPDF}
-                        className="bg-green-600 text-white px-4 py-2 rounded-md"
+                        className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
                     >
                         Export PDF
                     </button>
@@ -280,13 +279,13 @@ const Expenses = () => {
                         {editingId ? 'Edit Expense' : 'Add Expense'}
                     </h2>
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} className="space-y-3">
                         <input
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
                             placeholder="Description"
-                            className="w-full mb-3 p-2 border rounded"
+                            className="w-full p-2 border rounded"
                             required
                         />
 
@@ -296,7 +295,7 @@ const Expenses = () => {
                             value={formData.amount}
                             onChange={handleChange}
                             placeholder="Amount"
-                            className="w-full mb-3 p-2 border rounded"
+                            className="w-full p-2 border rounded"
                             required
                         />
 
@@ -304,7 +303,7 @@ const Expenses = () => {
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
-                            className="w-full mb-3 p-2 border rounded"
+                            className="w-full p-2 border rounded"
                         >
                             {PRESET_CATEGORIES.map(c => (
                                 <option key={c}>{c}</option>
@@ -318,7 +317,7 @@ const Expenses = () => {
                                 value={formData.customCategory}
                                 onChange={handleChange}
                                 placeholder="Enter custom category"
-                                className="w-full mb-3 p-2 border rounded"
+                                className="w-full p-2 border rounded"
                                 required
                             />
                         )}
@@ -328,10 +327,10 @@ const Expenses = () => {
                             name="date"
                             value={formData.date}
                             onChange={handleChange}
-                            className="w-full mb-4 p-2 border rounded"
+                            className="w-full p-2 border rounded"
                         />
 
-                        <button className="w-full bg-blue-600 text-white py-2 rounded">
+                        <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
                             {editingId ? 'Update Expense' : 'Add Expense'}
                         </button>
                     </form>
@@ -339,7 +338,7 @@ const Expenses = () => {
 
                 {/* TABLE */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow">
-                    <table className="w-full">
+                    <table className="w-full text-sm">
                         <thead className="bg-gray-100">
                             <tr>
                                 <th className="p-3 text-left">Description</th>
@@ -351,7 +350,10 @@ const Expenses = () => {
                         </thead>
                         <tbody>
                             {expenses.map(e => (
-                                <tr key={e._id} className="border-b">
+                                <tr
+                                    key={e._id}
+                                    className="border-b hover:bg-gray-50 transition"
+                                >
                                     <td className="p-3">{e.description}</td>
                                     <td className="p-3 font-semibold">
                                         {currencySymbol[currency]}
