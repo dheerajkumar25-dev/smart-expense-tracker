@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from '../utils/axios';
-import { Trash2, Pencil } from 'lucide-react';
+import { Trash2, Pencil, Moon, Sun } from 'lucide-react';
 import moment from 'moment';
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
@@ -36,6 +36,10 @@ const Expenses = () => {
     const [editingId, setEditingId] = useState(null);
     const [currency, setCurrency] = useState(storedUser?.currency || 'INR');
     const [loading, setLoading] = useState(true);
+
+    const [isDark, setIsDark] = useState(
+        document.documentElement.classList.contains('dark')
+    );
 
     const [formData, setFormData] = useState({
         description: '',
@@ -77,6 +81,15 @@ const Expenses = () => {
         } catch {
             console.error('Budget fetch failed');
         }
+    };
+
+    /* ================= DARK MODE ================= */
+    const toggleDarkMode = () => {
+        const root = document.documentElement;
+        root.classList.toggle('dark');
+        const active = root.classList.contains('dark');
+        setIsDark(active);
+        localStorage.setItem('theme', active ? 'dark' : 'light');
     };
 
     /* ================= FORM HANDLERS ================= */
@@ -194,10 +207,8 @@ const Expenses = () => {
     const exportPDF = () => {
         try {
             const doc = new jsPDF();
-
             doc.setFontSize(18);
             doc.text('Expense Report', 14, 15);
-
             doc.setFontSize(11);
             doc.text(`Currency: ${currency}`, 14, 23);
 
@@ -219,20 +230,26 @@ const Expenses = () => {
         }
     };
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) {
+        return <p className="text-gray-600 dark:text-gray-300">Loading...</p>;
+    }
 
     /* ================= UI ================= */
     return (
-        <div>
-            {/* HEADER */}
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-semibold text-gray-800">Expenses</h1>
+        <div className="space-y-6 text-gray-900 dark:text-gray-100 transition-colors">
 
-                <div className="flex gap-3">
+            {/* HEADER */}
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold">Expenses</h1>
+
+                <div className="flex items-center gap-3">
                     <select
                         value={currency}
                         onChange={e => handleCurrencyChange(e.target.value)}
-                        className="border px-3 py-2 rounded-md text-sm"
+                        className="border px-3 py-2 rounded-md text-sm
+                                   bg-white dark:bg-gray-800
+                                   text-gray-800 dark:text-gray-200
+                                   border-gray-300 dark:border-gray-700"
                     >
                         <option value="INR">₹ INR</option>
                         <option value="USD">$ USD</option>
@@ -241,22 +258,34 @@ const Expenses = () => {
 
                     <button
                         onClick={exportPDF}
-                        className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+                        className="bg-green-600 hover:bg-green-700
+                                   text-white px-4 py-2 rounded-md transition"
                     >
                         Export PDF
+                    </button>
+
+                    <button
+                        onClick={toggleDarkMode}
+                        className="p-2 rounded-md
+                                   bg-gray-200 dark:bg-gray-700
+                                   text-gray-800 dark:text-gray-200
+                                   hover:scale-105 transition"
+                        title="Toggle theme"
+                    >
+                        {isDark ? <Sun size={18} /> : <Moon size={18} />}
                     </button>
                 </div>
             </div>
 
-            {/* BUDGET STATUS */}
+            {/* ================= BUDGET STATUS ================= */}
             {budget && (
-                <div className="bg-white p-4 rounded-lg shadow mb-6">
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                     <div className="flex justify-between mb-2">
                         <span className="font-semibold">Budget Used</span>
                         <span className="font-semibold">{budgetUsedPercent}%</span>
                     </div>
 
-                    <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                         <div
                             className={`h-3 rounded-full ${
                                 budgetUsedPercent < 80
@@ -271,10 +300,10 @@ const Expenses = () => {
                 </div>
             )}
 
-            {/* FORM + TABLE */}
+            {/* ================= FORM + TABLE ================= */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* FORM */}
-                <div className="bg-white p-6 rounded-lg shadow">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                     <h2 className="text-xl font-bold mb-4">
                         {editingId ? 'Edit Expense' : 'Add Expense'}
                     </h2>
@@ -285,7 +314,9 @@ const Expenses = () => {
                             value={formData.description}
                             onChange={handleChange}
                             placeholder="Description"
-                            className="w-full p-2 border rounded"
+                            className="w-full p-2 border rounded
+                                       bg-white dark:bg-gray-700
+                                       border-gray-300 dark:border-gray-600"
                             required
                         />
 
@@ -295,7 +326,9 @@ const Expenses = () => {
                             value={formData.amount}
                             onChange={handleChange}
                             placeholder="Amount"
-                            className="w-full p-2 border rounded"
+                            className="w-full p-2 border rounded
+                                       bg-white dark:bg-gray-700
+                                       border-gray-300 dark:border-gray-600"
                             required
                         />
 
@@ -303,7 +336,9 @@ const Expenses = () => {
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
-                            className="w-full p-2 border rounded"
+                            className="w-full p-2 border rounded
+                                       bg-white dark:bg-gray-700
+                                       border-gray-300 dark:border-gray-600"
                         >
                             {PRESET_CATEGORIES.map(c => (
                                 <option key={c}>{c}</option>
@@ -317,7 +352,9 @@ const Expenses = () => {
                                 value={formData.customCategory}
                                 onChange={handleChange}
                                 placeholder="Enter custom category"
-                                className="w-full p-2 border rounded"
+                                className="w-full p-2 border rounded
+                                           bg-white dark:bg-gray-700
+                                           border-gray-300 dark:border-gray-600"
                                 required
                             />
                         )}
@@ -327,19 +364,24 @@ const Expenses = () => {
                             name="date"
                             value={formData.date}
                             onChange={handleChange}
-                            className="w-full p-2 border rounded"
+                            className="w-full p-2 border rounded
+                                       bg-white dark:bg-gray-700
+                                       border-gray-300 dark:border-gray-600"
                         />
 
-                        <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
+                        <button
+                            className="w-full bg-blue-600 hover:bg-blue-700
+                                       text-white py-2 rounded transition"
+                        >
                             {editingId ? 'Update Expense' : 'Add Expense'}
                         </button>
                     </form>
                 </div>
 
                 {/* TABLE */}
-                <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow">
+                <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                     <table className="w-full text-sm">
-                        <thead className="bg-gray-100">
+                        <thead className="bg-gray-100 dark:bg-gray-700">
                             <tr>
                                 <th className="p-3 text-left">Description</th>
                                 <th className="p-3">Amount</th>
@@ -352,7 +394,8 @@ const Expenses = () => {
                             {expenses.map(e => (
                                 <tr
                                     key={e._id}
-                                    className="border-b hover:bg-gray-50 transition"
+                                    className="border-b dark:border-gray-700
+                                               hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                                 >
                                     <td className="p-3">{e.description}</td>
                                     <td className="p-3 font-semibold">
@@ -365,10 +408,10 @@ const Expenses = () => {
                                     </td>
                                     <td className="p-3 flex gap-3">
                                         <button onClick={() => handleEdit(e)}>
-                                            <Pencil size={16} className="text-blue-600" />
+                                            <Pencil size={16} className="text-blue-500" />
                                         </button>
                                         <button onClick={() => handleDelete(e._id)}>
-                                            <Trash2 size={16} className="text-red-600" />
+                                            <Trash2 size={16} className="text-red-500" />
                                         </button>
                                     </td>
                                 </tr>
@@ -377,7 +420,7 @@ const Expenses = () => {
                     </table>
 
                     {expenses.length === 0 && (
-                        <p className="text-center mt-4 text-gray-500">
+                        <p className="text-center mt-4 text-gray-500 dark:text-gray-400">
                             No expenses found
                         </p>
                     )}

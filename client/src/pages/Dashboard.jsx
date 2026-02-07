@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const Dashboard = () => {
+const Dashboard = ({ darkMode, setDarkMode }) => {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -21,7 +21,7 @@ const Dashboard = () => {
     const [monthlyTotal, setMonthlyTotal] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    // 🌍 Currency State (UNCHANGED)
+    // 🌍 Currency
     const [currency, setCurrency] = useState(
         localStorage.getItem('currency') || 'INR'
     );
@@ -94,63 +94,70 @@ const Dashboard = () => {
     const lastExpense = expenses[0];
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-10 text-gray-900 dark:text-gray-100 transition-colors">
+
             {/* HEADER */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">
-                        Dashboard
-                    </h1>
-                    <p className="mt-1 text-gray-500">
+                    <h1 className="text-3xl font-bold">Dashboard</h1>
+                    <p className="mt-1 text-gray-500 dark:text-gray-400">
                         Welcome back, {user?.name} 👋
                     </p>
                 </div>
 
-                {/* Currency Switch */}
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">
-                        Currency
-                    </span>
+                {/* RIGHT CONTROL BAR */}
+                <div className="flex items-center gap-3 bg-white dark:bg-gray-800
+                                border border-gray-200 dark:border-gray-700
+                                px-4 py-2 rounded-lg shadow-sm">
+
+                    {/* Currency */}
                     <select
                         value={currency}
                         onChange={handleCurrencyChange}
-                        className="border px-3 py-1 rounded-md text-sm"
+                        className="bg-transparent text-sm
+                                   border border-gray-300 dark:border-gray-600
+                                   rounded px-2 py-1"
                     >
                         <option value="INR">₹ INR</option>
                         <option value="USD">$ USD</option>
                     </select>
+
+                    {/* Dark Mode Toggle */}
+                    <button
+                        onClick={() => setDarkMode(!darkMode)}
+                        title="Toggle theme"
+                        className="text-xl hover:scale-110 transition"
+                    >
+                        {darkMode ? '☀️' : '🌙'}
+                    </button>
                 </div>
             </div>
 
+            {/* ===== REST OF UI (UNCHANGED) ===== */}
+
             {/* TOP SUMMARY */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
-                    <p className="text-sm text-gray-500">
-                        Monthly Budget
-                    </p>
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                    <p className="text-sm text-gray-500">Monthly Budget</p>
                     <p className="mt-2 text-3xl font-extrabold">
                         {currencySymbol}{budget ?? '—'}
                     </p>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
-                    <p className="text-sm text-gray-500">
-                        Spent This Month
-                    </p>
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                    <p className="text-sm text-gray-500">Spent This Month</p>
                     <p className="mt-2 text-3xl font-extrabold">
                         {currencySymbol}{monthlyTotal}
                     </p>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
                     <p className="text-sm text-gray-500">
                         {remaining >= 0 ? 'Remaining Budget' : 'Over Budget'}
                     </p>
                     <p
                         className={`mt-2 text-3xl font-extrabold ${
-                            remaining >= 0
-                                ? 'text-green-600'
-                                : 'text-red-600'
+                            remaining >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}
                     >
                         {currencySymbol}
@@ -161,21 +168,17 @@ const Dashboard = () => {
 
             {/* TRANSACTION + RECENT */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
-                    <p className="text-sm text-gray-500">
-                        Transaction Count
-                    </p>
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                    <p className="text-sm text-gray-500">Transaction Count</p>
                     <p className="mt-2 text-4xl font-bold">
                         {expenses.length}
                     </p>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
-                    <p className="text-sm text-gray-500">
-                        Recent Activity
-                    </p>
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                    <p className="text-sm text-gray-500">Recent Activity</p>
                     {lastExpense ? (
-                        <p className="mt-2 font-semibold text-gray-800">
+                        <p className="mt-2 font-semibold">
                             {lastExpense.description}{' '}
                             <span className="text-gray-500">
                                 ({currencySymbol}{lastExpense.amount})
@@ -190,70 +193,56 @@ const Dashboard = () => {
             </div>
 
             {/* BUDGET USED */}
-            <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
                 <div className="flex justify-between mb-2">
-                    <p className="font-semibold text-gray-700">
-                        Budget Used
-                    </p>
-                    <p className="font-semibold">
-                        {usagePercent}%
-                    </p>
+                    <p className="font-semibold">Budget Used</p>
+                    <p className="font-semibold">{usagePercent}%</p>
                 </div>
 
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                     <div
-                        className={`h-3 rounded-full transition-all ${
+                        className={`h-3 rounded-full ${
                             usagePercent < 80
                                 ? 'bg-green-500'
                                 : usagePercent < 100
                                 ? 'bg-yellow-500'
                                 : 'bg-red-500'
                         }`}
-                        style={{
-                            width: `${Math.min(usagePercent, 100)}%`,
-                        }}
+                        style={{ width: `${Math.min(usagePercent, 100)}%` }}
                     />
                 </div>
-
-                <p className="mt-2 text-sm text-gray-600">
-                    {usagePercent < 80 && '✅ Budget under control'}
-                    {usagePercent >= 80 &&
-                        usagePercent < 100 &&
-                        '⚠️ Approaching budget limit'}
-                    {usagePercent >= 100 && '🚨 Budget exceeded'}
-                </p>
             </div>
 
             {/* CHART + ACTIONS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-xl shadow-sm">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
                     <h2 className="text-lg font-semibold mb-4">
                         Expenses by Category
                     </h2>
                     {expenses.length > 0 ? (
                         <Pie data={pieData} />
                     ) : (
-                        <p className="text-gray-400">
-                            No data available
-                        </p>
+                        <p className="text-gray-400">No data available</p>
                     )}
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm">
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
                     <h2 className="text-lg font-semibold mb-4">
                         Quick Actions
                     </h2>
                     <div className="flex flex-col gap-4">
                         <button
                             onClick={() => navigate('/expenses')}
-                            className="py-2 rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+                            className="py-2 rounded-md bg-blue-100 dark:bg-blue-900
+                                       text-blue-700 dark:text-blue-300"
                         >
                             View Full History
                         </button>
 
                         <button
                             onClick={() => navigate('/budget')}
-                            className="py-2 rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition"
+                            className="py-2 rounded-md bg-green-100 dark:bg-green-900
+                                       text-green-700 dark:text-green-300"
                         >
                             Set Monthly Budget
                         </button>

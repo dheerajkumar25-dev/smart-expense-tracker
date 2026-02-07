@@ -16,25 +16,55 @@ const Sidebar = () => {
     ];
 
     return (
-        <div className="flex flex-col w-64 h-screen px-4 py-8 bg-white border-r">
-            <h2 className="text-3xl font-bold text-center text-blue-600">Tracker</h2>
+        <div className="
+            flex flex-col w-64 h-screen px-4 py-8
+            bg-white dark:bg-gray-900
+            border-r border-gray-200 dark:border-gray-700
+            transition-colors duration-300
+        ">
+            {/* Logo */}
+            <h2 className="text-3xl font-bold text-center text-blue-600 dark:text-blue-400">
+                Tracker
+            </h2>
+
             <div className="flex flex-col justify-between flex-1 mt-6">
+                {/* NAV */}
                 <nav>
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={`flex items-center px-4 py-2 mt-4 text-gray-600 rounded-md hover:bg-gray-200 ${isActive(item.path) ? 'bg-gray-200 text-blue-600' : ''
-                                }`}
-                        >
-                            {item.icon}
-                            <span className="mx-4 font-medium">{item.label}</span>
-                        </Link>
-                    ))}
+                    {navItems.map((item) => {
+                        const active = isActive(item.path);
+
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={`
+                                    flex items-center px-4 py-2 mt-4 rounded-md
+                                    transition-colors duration-200
+                                    ${
+                                        active
+                                            ? 'bg-blue-100 text-blue-700 dark:bg-gray-800 dark:text-blue-400'
+                                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+                                    }
+                                `}
+                            >
+                                {item.icon}
+                                <span className="mx-4 font-medium">
+                                    {item.label}
+                                </span>
+                            </Link>
+                        );
+                    })}
                 </nav>
+
+                {/* LOGOUT */}
                 <button
                     onClick={logout}
-                    className="flex items-center px-4 py-2 mt-4 text-gray-600 rounded-md hover:bg-gray-200"
+                    className="
+                        flex items-center px-4 py-2 mt-6 rounded-md
+                        text-gray-600 dark:text-gray-300
+                        hover:bg-gray-200 dark:hover:bg-gray-800
+                        transition-colors duration-200
+                    "
                 >
                     <LogOut size={20} />
                     <span className="mx-4 font-medium">Logout</span>
