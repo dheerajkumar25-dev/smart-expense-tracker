@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import axios from '../utils/axios';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil } from 'lucide-react';
 import moment from 'moment';
+import toast from 'react-hot-toast';
 
 const Expenses = () => {
     const [expenses, setExpenses] = useState([]);
-    const [filteredExpenses, setFilteredExpenses] = useState([]);
+    const [budget, setBudget] = useState(null);
+    const [monthlySpent, setMonthlySpent] = useState(0);
+    const [editingId, setEditingId] = useState(null);
 
     const [formData, setFormData] = useState({
         description: '',
@@ -14,16 +17,7 @@ const Expenses = () => {
         date: ''
     });
 
-    const [customCategory, setCustomCategory] = useState('');
     const [loading, setLoading] = useState(true);
-
-    // Budget
-    const [budget, setBudget] = useState(null);
-    const [monthlyTotal, setMonthlyTotal] = useState(0);
-
-    // Filters
-    const [monthFilter, setMonthFilter] = useState('current');
-    const [categoryFilter, setCategoryFilter] = useState('All');
 
     useEffect(() => {
         fetchExpenses();
@@ -31,16 +25,20 @@ const Expenses = () => {
     }, []);
 
     useEffect(() => {
-        applyFilters();
-    }, [expenses, monthFilter, categoryFilter]);
+        const total = expenses
+            .filter(e => moment(e.date).isSame(moment(), 'month'))
+            .reduce((sum, e) => sum + e.amount, 0);
+
+        setMonthlySpent(total);
+    }, [expenses]);
 
     const fetchExpenses = async () => {
         try {
             const { data } = await axios.get('/expenses');
             setExpenses(data);
-            setLoading(false);
-        } catch (error) {
-            console.error(error);
+        } catch {
+            toast.error('Failed to load expenses');
+        } finally {
             setLoading(false);
         }
     };
@@ -49,88 +47,91 @@ const Expenses = () => {
         try {
             const { data } = await axios.get('/budget');
             if (data) setBudget(data.amount);
-        } catch (error) {
-            console.error(error);
+        } catch {
+            console.error('Budget fetch failed');
         }
-    };
-
-    const applyFilters = () => {
-        let result = [...expenses];
-        const now = moment();
-
-        if (monthFilter === 'current') {
-            result = result.filter(e =>
-                moment(e.date).month() === now.month() &&
-                moment(e.date).year() === now.year()
-            );
-        }
-
-        if (monthFilter === 'previous') {
-            const prev = now.clone().subtract(1, 'month');
-            result = result.filter(e =>
-                moment(e.date).month() === prev.month() &&
-                moment(e.date).year() === prev.year()
-            );
-        }
-
-        if (categoryFilter !== 'All') {
-            result = result.filter(e => e.category === categoryFilter);
-        }
-
-        setFilteredExpenses(result);
-
-        const total = result.reduce((sum, e) => sum + e.amount, 0);
-        setMonthlyTotal(total);
     };
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const budgetUsedPercent =
+        budget ? (monthlySpent / budget) * 100 : 0;
+
+    const handleEdit = (expense) => {
+        setEditingId(expense._id);
+        setFormData({
+            description: expense.description,
+            amount: expense.amount,
+            category: expense.category,
+            date: moment(expense.date).format('YYYY-MM-DD')
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (budget && monthlyTotal >= budget) {
-            alert('🚨 Budget exceeded! Cannot add more expenses.');
-            return;
+        if (!editingId) {
+            if (budget && budgetUsedPercent >= 100) {
+                toast.error('🚫 Budget exceeded! Cannot add expense.');
+                return;
+            }
+
+            if (budget && budgetUsedPercent >= 80) {
+                toast('⚠️ You are close to your budget limit!', { icon: '⚠️' });
+            }
         }
 
-        const finalCategory =
-            formData.category === 'Custom'
-                ? customCategory
-                : formData.category;
-
         try {
-            const { data } = await axios.post('/expenses', {
-                ...formData,
-                category: finalCategory
-            });
+            let response;
 
-            setExpenses([data, ...expenses]);
+            if (editingId) {
+                response = await axios.put(
+                    `/expenses/${editingId}`,
+                    { ...formData, amount: Number(formData.amount) }
+                );
+
+                setExpenses(
+                    expenses.map(e =>
+                        e._id === editingId ? response.data : e
+                    )
+                );
+
+                toast.success('Expense updated');
+            } else {
+                response = await axios.post('/expenses', {
+                    ...formData,
+                    amount: Number(formData.amount),
+                });
+
+                setExpenses([response.data, ...expenses]);
+                toast.success('Expense added');
+            }
+
             setFormData({
                 description: '',
                 amount: '',
                 category: 'Food',
                 date: ''
             });
-            setCustomCategory('');
-        } catch (error) {
-            console.error(error);
+            setEditingId(null);
+        } catch {
+            toast.error('Operation failed');
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure?')) {
-            try {
-                await axios.delete(`/expenses/${id}`);
-                setExpenses(expenses.filter(e => e._id !== id));
-            } catch (error) {
-                console.error(error);
-            }
+        if (!window.confirm('Delete this expense?')) return;
+
+        try {
+            await axios.delete(`/expenses/${id}`);
+            setExpenses(expenses.filter(e => e._id !== id));
+            toast.success('Expense deleted');
+        } catch {
+            toast.error('Delete failed');
         }
     };
-
-    const budgetUsage = budget ? (monthlyTotal / budget) * 100 : 0;
 
     if (loading) return <p>Loading...</p>;
 
@@ -138,50 +139,31 @@ const Expenses = () => {
         <div>
             <h1 className="text-3xl font-semibold text-gray-800">Expenses</h1>
 
-            {/* Budget Warning */}
+            {/* Budget Status */}
             {budget && (
-                <div className={`mt-4 p-3 rounded-md font-medium
-                    ${budgetUsage >= 100
-                        ? 'bg-red-100 text-red-700'
-                        : budgetUsage >= 80
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-green-100 text-green-700'}`}>
-                    {budgetUsage >= 100
-                        ? '🚨 Budget exceeded! Expense adding blocked.'
-                        : budgetUsage >= 80
-                        ? '⚠️ You have used more than 80% of your budget.'
-                        : '✅ Budget under control'}
+                <div className="mt-4 p-4 rounded-md bg-gray-100">
+                    <p className="text-sm">
+                        Budget Used: <b>{budgetUsedPercent.toFixed(1)}%</b>
+                    </p>
+                    {budgetUsedPercent >= 100 && (
+                        <p className="text-red-600 font-semibold">
+                            🚫 Budget exceeded
+                        </p>
+                    )}
+                    {budgetUsedPercent >= 80 && budgetUsedPercent < 100 && (
+                        <p className="text-yellow-600 font-semibold">
+                            ⚠️ Close to budget limit
+                        </p>
+                    )}
                 </div>
             )}
 
-            {/* Filters */}
-            <div className="flex gap-4 mt-6">
-                <select
-                    value={monthFilter}
-                    onChange={(e) => setMonthFilter(e.target.value)}
-                    className="border px-3 py-2 rounded-md"
-                >
-                    <option value="current">This Month</option>
-                    <option value="previous">Previous Month</option>
-                    <option value="all">All</option>
-                </select>
-
-                <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="border px-3 py-2 rounded-md"
-                >
-                    <option value="All">All Categories</option>
-                    {[...new Set(expenses.map(e => e.category))].map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                </select>
-            </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                {/* Add Expense */}
-                <div className="bg-white p-6 rounded-lg shadow-md h-fit">
-                    <h2 className="text-xl font-bold mb-4">Add New Expense</h2>
+                {/* Add / Edit Form */}
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h2 className="text-xl font-bold mb-4">
+                        {editingId ? 'Edit Expense' : 'Add New Expense'}
+                    </h2>
 
                     <form onSubmit={handleSubmit}>
                         <input
@@ -210,77 +192,111 @@ const Expenses = () => {
                             onChange={handleChange}
                             className="w-full mb-3 px-4 py-2 border rounded-md"
                         >
-                            <option value="Food">Food</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Utilities">Utilities</option>
-                            <option value="Entertainment">Entertainment</option>
-                            <option value="Health">Health</option>
-                            <option value="Custom">Custom</option>
+                            <option>Food</option>
+                            <option>Transport</option>
+                            <option>Utilities</option>
+                            <option>Entertainment</option>
+                            <option>Health</option>
+                            <option>Other</option>
                         </select>
-
-                        {formData.category === 'Custom' && (
-                            <input
-                                type="text"
-                                placeholder="Enter custom category"
-                                value={customCategory}
-                                onChange={(e) => setCustomCategory(e.target.value)}
-                                className="w-full mb-3 px-4 py-2 border rounded-md"
-                                required
-                            />
-                        )}
 
                         <input
                             type="date"
                             name="date"
                             value={formData.date}
                             onChange={handleChange}
-                            className="w-full mb-3 px-4 py-2 border rounded-md"
+                            className="w-full mb-4 px-4 py-2 border rounded-md"
                         />
 
                         <button
                             type="submit"
-                            disabled={budgetUsage >= 100}
-                            className={`w-full py-2 rounded-md flex justify-center items-center
-                                ${budgetUsage >= 100
+                            className={`w-full py-2 rounded-md ${
+                                !editingId && budgetUsedPercent >= 100
                                     ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                                    : 'bg-blue-600 text-white'
+                            }`}
+                            disabled={!editingId && budgetUsedPercent >= 100}
                         >
-                            <Plus size={18} className="mr-2" />
-                            Add Expense
+                            {editingId ? 'Update Expense' : 'Add Expense'}
                         </button>
+
+                        {editingId && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setEditingId(null);
+                                    setFormData({
+                                        description: '',
+                                        amount: '',
+                                        category: 'Food',
+                                        date: ''
+                                    });
+                                }}
+                                className="w-full mt-2 py-2 bg-gray-200 rounded-md"
+                            >
+                                Cancel Edit
+                            </button>
+                        )}
                     </form>
                 </div>
 
                 {/* Expense List */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-bold mb-4">Transactions</h2>
+                    <h2 className="text-xl font-bold mb-4">
+                        Recent Transactions
+                    </h2>
 
-                    {filteredExpenses.map((expense) => (
-                        <div
-                            key={expense._id}
-                            className="flex justify-between items-center border p-4 rounded-md mb-3"
-                        >
-                            <div>
-                                <p className="font-semibold">{expense.description}</p>
-                                <p className="text-sm text-gray-500">
-                                    {expense.category} • {moment(expense.date).format('DD MMM YYYY')}
-                                </p>
-                            </div>
+                    <table className="w-full">
+                        <thead>
+                            <tr className="bg-gray-100 text-left">
+                                <th className="p-3">Description</th>
+                                <th className="p-3">Amount</th>
+                                <th className="p-3">Category</th>
+                                <th className="p-3">Date</th>
+                                <th className="p-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {expenses.map(expense => (
+                                <tr key={expense._id} className="border-b">
+                                    <td className="p-3">{expense.description}</td>
+                                    <td className="p-3 font-semibold">
+                                        ₹{expense.amount}
+                                    </td>
+                                    <td className="p-3">{expense.category}</td>
+                                    <td className="p-3">
+                                        {moment(expense.date).format('MMM Do YY')}
+                                    </td>
+                                    <td className="p-3">
+                                        <div className="flex gap-4">
+                                            {/* ✏️ EDIT ICON */}
+                                            <button
+                                                onClick={() => handleEdit(expense)}
+                                                className="text-blue-600 hover:text-blue-800"
+                                                title="Edit"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
 
-                            <div className="flex items-center gap-4">
-                                <p className="font-bold">₹{expense.amount}</p>
-                                <button
-                                    onClick={() => handleDelete(expense._id)}
-                                    className="text-red-600"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                                            {/* 🗑 DELETE ICON */}
+                                            <button
+                                                onClick={() => handleDelete(expense._id)}
+                                                className="text-red-600 hover:text-red-800"
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
-                    {filteredExpenses.length === 0 && (
-                        <p className="text-center text-gray-500">No expenses found</p>
+                    {expenses.length === 0 && (
+                        <p className="text-center mt-4 text-gray-500">
+                            No expenses found.
+                        </p>
                     )}
                 </div>
             </div>

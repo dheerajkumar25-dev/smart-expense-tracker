@@ -61,6 +61,31 @@ router.post('/', protect, async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 });
+/* UPDATE expense */
+router.put('/:id', protect, async (req, res) => {
+    try {
+        const expense = await Expense.findById(req.params.id);
+
+        if (!expense) {
+            return res.status(404).json({ message: 'Expense not found' });
+        }
+
+        // check ownership
+        if (expense.user.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        expense.description = req.body.description;
+        expense.amount = req.body.amount;
+        expense.category = req.body.category;
+        expense.date = req.body.date;
+
+        const updatedExpense = await expense.save();
+        res.json(updatedExpense);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 /* DELETE expense */
 router.delete('/:id', protect, async (req, res) => {

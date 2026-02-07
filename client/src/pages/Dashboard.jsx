@@ -4,124 +4,80 @@ import {
     ArcElement,
     Tooltip,
     Legend,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title
 } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import AuthContext from '../context/AuthContext';
 import axios from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
 
-ChartJS.register(
-    ArcElement,
-    Tooltip,
-    Legend,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title
-);
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Dashboard = () => {
     const { user } = useContext(AuthContext);
-    const [expenses, setExpenses] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    // ⭐ NEW STATES
-    const [budget, setBudget] = useState(null);
-    const [monthlyTotal, setMonthlyTotal] = useState(0);
-
     const navigate = useNavigate();
 
+    const [expenses, setExpenses] = useState([]);
+    const [budget, setBudget] = useState(null);
+    const [monthlyTotal, setMonthlyTotal] = useState(0);
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
-        const fetchExpenses = async () => {
+        const fetchData = async () => {
             try {
-                const { data } = await axios.get('/expenses');
-                setExpenses(data);
+                const expenseRes = await axios.get('/expenses');
+                const budgetRes = await axios.get('/budget');
+
+                setExpenses(expenseRes.data);
+                if (budgetRes.data) setBudget(budgetRes.data.amount);
+
+                const total = expenseRes.data.reduce(
+                    (acc, e) => acc + e.amount,
+                    0
+                );
+                setMonthlyTotal(total);
+            } catch (err) {
+                console.error(err);
+            } finally {
                 setLoading(false);
-            } catch (error) {
-                console.error(error);
-                setLoading(false);
             }
         };
 
-        const fetchBudget = async () => {
-            try {
-                const { data } = await axios.get('/budget');
-                if (data) setBudget(data.amount);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        const fetchMonthlyTotal = async () => {
-            try {
-                const { data } = await axios.get('/expenses/total/month');
-                setMonthlyTotal(data.total);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        fetchExpenses();
-        fetchBudget();
-        fetchMonthlyTotal();
+        fetchData();
     }, []);
 
-    const totalExpense = expenses.reduce(
-        (acc, curr) => acc + curr.amount,
-        0
-    );
+    if (loading) return <p>Loading...</p>;
 
-    const categories = [...new Set(expenses.map((e) => e.category))];
+    const remaining = budget !== null ? budget - monthlyTotal : null;
+    const usagePercent =
+        budget && budget > 0
+            ? ((monthlyTotal / budget) * 100).toFixed(1)
+            : 0;
 
-    const categoryData = categories.map((cat) =>
+    const categories = [...new Set(expenses.map(e => e.category))];
+    const categoryData = categories.map(cat =>
         expenses
-            .filter((e) => e.category === cat)
-            .reduce((acc, curr) => acc + curr.amount, 0)
+            .filter(e => e.category === cat)
+            .reduce((acc, e) => acc + e.amount, 0)
     );
 
     const pieData = {
         labels: categories,
         datasets: [
             {
-                label: 'Expenses by Category',
                 data: categoryData,
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(54, 162, 235, 0.2)',
-                    'rgba(255, 206, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 159, 64, 0.2)',
+                    '#60a5fa',
+                    '#34d399',
+                    '#fbbf24',
+                    '#f87171',
+                    '#a78bfa',
+                    '#fb7185',
                 ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)',
-                ],
-                borderWidth: 1,
             },
         ],
     };
 
-    const pieOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: {
-            duration: 1200,
-        },
-    };
-
-    if (loading) return <p>Loading...</p>;
-
-    const remaining =
-        budget !== null ? budget - monthlyTotal : null;
+    const lastExpense = expenses[0];
 
     return (
         <div>
@@ -129,47 +85,29 @@ const Dashboard = () => {
                 Dashboard
             </h1>
 
-            <p className="mt-4 text-gray-600">
-                Welcome back, {user?.name}!
+            <p className="mt-2 text-gray-600">
+                Welcome back, {user?.name} 👋
             </p>
 
-            {/* ⭐ BUDGET SUMMARY */}
+            {/* TOP SUMMARY */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
-                    <h2 className="text-sm text-gray-600">
-                        Monthly Budget
-                    </h2>
-                    <p className="mt-2 text-2xl font-bold">
-                        ₹{budget ?? '—'}
-                    </p>
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <p className="text-sm text-gray-500">Monthly Budget</p>
+                    <p className="text-2xl font-bold">₹{budget ?? '—'}</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
-                    <h2 className="text-sm text-gray-600">
-                        Spent This Month
-                    </h2>
-                    <p className="mt-2 text-2xl font-bold">
-                        ₹{monthlyTotal}
-                    </p>
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <p className="text-sm text-gray-500">Spent This Month</p>
+                    <p className="text-2xl font-bold">₹{monthlyTotal}</p>
                 </div>
 
-                <div
-                    className={`bg-white p-6 rounded-lg shadow-md border-l-4 ${
-                        remaining !== null && remaining >= 0
-                            ? 'border-green-500'
-                            : 'border-red-500'
-                    }`}
-                >
-                    <h2 className="text-sm text-gray-600">
-                        {remaining !== null && remaining >= 0
-                            ? 'Remaining Budget'
-                            : 'Over Budget'}
-                    </h2>
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <p className="text-sm text-gray-500">
+                        {remaining >= 0 ? 'Remaining Budget' : 'Over Budget'}
+                    </p>
                     <p
-                        className={`mt-2 text-2xl font-bold ${
-                            remaining !== null && remaining >= 0
-                                ? 'text-green-600'
-                                : 'text-red-600'
+                        className={`text-2xl font-bold ${
+                            remaining >= 0 ? 'text-green-600' : 'text-red-600'
                         }`}
                     >
                         ₹{remaining !== null ? Math.abs(remaining) : '—'}
@@ -177,75 +115,80 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* ⭐ EXISTING STATS */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
-                    <h2 className="text-xl font-bold text-gray-700">
-                        Total Expenses
-                    </h2>
-                    <p className="mt-2 text-3xl font-semibold">
-                        ₹{totalExpense.toFixed(2)}
-                    </p>
+            {/* ✅ TRANSACTION + RECENT (MOVED UP) */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <p className="text-sm text-gray-500">Transaction Count</p>
+                    <p className="text-3xl font-bold">{expenses.length}</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
-                    <h2 className="text-xl font-bold text-gray-700">
-                        Transaction Count
-                    </h2>
-                    <p className="mt-2 text-3xl font-semibold">
-                        {expenses.length}
-                    </p>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-red-500">
-                    <h2 className="text-xl font-bold text-gray-700">
-                        Recent Activity
-                    </h2>
-                    <p className="mt-2 text-sm text-gray-600">
-                        {expenses.length > 0
-                            ? `Last: ${expenses[0].description} (₹${expenses[0].amount})`
-                            : 'No transactions'}
-                    </p>
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <p className="text-sm text-gray-500">Recent Activity</p>
+                    {lastExpense ? (
+                        <p className="mt-1 font-medium">
+                            {lastExpense.description} (₹{lastExpense.amount})
+                        </p>
+                    ) : (
+                        <p>No transactions</p>
+                    )}
                 </div>
             </div>
 
-            {/* ⭐ CHART + ACTIONS */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-bold mb-4">
-                        Expenses by Category
-                    </h2>
-
-                    <div className="relative w-full h-64">
-                        {expenses.length > 0 ? (
-                            <Pie
-                                data={pieData}
-                                options={pieOptions}
-                            />
-                        ) : (
-                            <p className="flex items-center justify-center h-full">
-                                No data to display
-                            </p>
-                        )}
-                    </div>
+            {/* ✅ BUDGET USED (NOW BELOW) */}
+            <div className="mt-6 bg-white p-6 rounded-lg shadow">
+                <div className="flex justify-between mb-2">
+                    <p className="font-semibold">Budget Used</p>
+                    <p className="font-semibold">{usagePercent}%</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-bold mb-4">
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                        className={`h-3 rounded-full ${
+                            usagePercent < 80
+                                ? 'bg-green-500'
+                                : usagePercent < 100
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                        }`}
+                        style={{ width: `${Math.min(usagePercent, 100)}%` }}
+                    ></div>
+                </div>
+
+                <p className="mt-2 text-sm text-gray-600">
+                    {usagePercent < 80 && '✅ Budget under control'}
+                    {usagePercent >= 80 && usagePercent < 100 && '⚠️ Approaching budget limit'}
+                    {usagePercent >= 100 && '🚨 Budget exceeded'}
+                </p>
+            </div>
+
+            {/* CHART + ACTIONS */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <h2 className="text-lg font-semibold mb-4">
+                        Expenses by Category
+                    </h2>
+                    {expenses.length > 0 ? (
+                        <Pie data={pieData} />
+                    ) : (
+                        <p>No data available</p>
+                    )}
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <h2 className="text-lg font-semibold mb-4">
                         Quick Actions
                     </h2>
-
                     <div className="flex flex-col gap-4">
                         <button
                             onClick={() => navigate('/expenses')}
-                            className="w-full py-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200"
+                            className="py-2 bg-blue-100 text-blue-600 rounded"
                         >
                             View Full History
                         </button>
 
                         <button
                             onClick={() => navigate('/budget')}
-                            className="w-full py-2 bg-green-100 text-green-600 rounded-md hover:bg-green-200"
+                            className="py-2 bg-green-100 text-green-600 rounded"
                         >
                             Set Monthly Budget
                         </button>
