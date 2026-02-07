@@ -21,7 +21,7 @@ const Dashboard = () => {
     const [monthlyTotal, setMonthlyTotal] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    // 🌍 Currency State
+    // 🌍 Currency State (UNCHANGED)
     const [currency, setCurrency] = useState(
         localStorage.getItem('currency') || 'INR'
     );
@@ -94,20 +94,23 @@ const Dashboard = () => {
     const lastExpense = expenses[0];
 
     return (
-        <div>
-            {/* HEADER + CURRENCY */}
+        <div className="space-y-10">
+            {/* HEADER */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-semibold text-gray-800">
+                    <h1 className="text-3xl font-bold text-gray-800">
                         Dashboard
                     </h1>
-                    <p className="mt-2 text-gray-600">
+                    <p className="mt-1 text-gray-500">
                         Welcome back, {user?.name} 👋
                     </p>
                 </div>
 
+                {/* Currency Switch */}
                 <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Currency:</span>
+                    <span className="text-sm text-gray-500">
+                        Currency
+                    </span>
                     <select
                         value={currency}
                         onChange={handleCurrencyChange}
@@ -120,28 +123,34 @@ const Dashboard = () => {
             </div>
 
             {/* TOP SUMMARY */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <p className="text-sm text-gray-500">Monthly Budget</p>
-                    <p className="text-2xl font-bold">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                    <p className="text-sm text-gray-500">
+                        Monthly Budget
+                    </p>
+                    <p className="mt-2 text-3xl font-extrabold">
                         {currencySymbol}{budget ?? '—'}
                     </p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <p className="text-sm text-gray-500">Spent This Month</p>
-                    <p className="text-2xl font-bold">
+                <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                    <p className="text-sm text-gray-500">
+                        Spent This Month
+                    </p>
+                    <p className="mt-2 text-3xl font-extrabold">
                         {currencySymbol}{monthlyTotal}
                     </p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
+                <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
                     <p className="text-sm text-gray-500">
                         {remaining >= 0 ? 'Remaining Budget' : 'Over Budget'}
                     </p>
                     <p
-                        className={`text-2xl font-bold ${
-                            remaining >= 0 ? 'text-green-600' : 'text-red-600'
+                        className={`mt-2 text-3xl font-extrabold ${
+                            remaining >= 0
+                                ? 'text-green-600'
+                                : 'text-red-600'
                         }`}
                     >
                         {currencySymbol}
@@ -151,80 +160,100 @@ const Dashboard = () => {
             </div>
 
             {/* TRANSACTION + RECENT */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <p className="text-sm text-gray-500">Transaction Count</p>
-                    <p className="text-3xl font-bold">{expenses.length}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                    <p className="text-sm text-gray-500">
+                        Transaction Count
+                    </p>
+                    <p className="mt-2 text-4xl font-bold">
+                        {expenses.length}
+                    </p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <p className="text-sm text-gray-500">Recent Activity</p>
+                <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
+                    <p className="text-sm text-gray-500">
+                        Recent Activity
+                    </p>
                     {lastExpense ? (
-                        <p className="mt-1 font-medium">
-                            {lastExpense.description} (
-                            {currencySymbol}{lastExpense.amount})
+                        <p className="mt-2 font-semibold text-gray-800">
+                            {lastExpense.description}{' '}
+                            <span className="text-gray-500">
+                                ({currencySymbol}{lastExpense.amount})
+                            </span>
                         </p>
                     ) : (
-                        <p>No transactions</p>
+                        <p className="mt-2 text-gray-400">
+                            No transactions yet
+                        </p>
                     )}
                 </div>
             </div>
 
             {/* BUDGET USED */}
-            <div className="mt-6 bg-white p-6 rounded-lg shadow">
+            <div className="bg-white p-6 rounded-xl shadow-sm">
                 <div className="flex justify-between mb-2">
-                    <p className="font-semibold">Budget Used</p>
-                    <p className="font-semibold">{usagePercent}%</p>
+                    <p className="font-semibold text-gray-700">
+                        Budget Used
+                    </p>
+                    <p className="font-semibold">
+                        {usagePercent}%
+                    </p>
                 </div>
 
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                     <div
-                        className={`h-3 rounded-full ${
+                        className={`h-3 rounded-full transition-all ${
                             usagePercent < 80
                                 ? 'bg-green-500'
                                 : usagePercent < 100
                                 ? 'bg-yellow-500'
                                 : 'bg-red-500'
                         }`}
-                        style={{ width: `${Math.min(usagePercent, 100)}%` }}
-                    ></div>
+                        style={{
+                            width: `${Math.min(usagePercent, 100)}%`,
+                        }}
+                    />
                 </div>
 
                 <p className="mt-2 text-sm text-gray-600">
                     {usagePercent < 80 && '✅ Budget under control'}
-                    {usagePercent >= 80 && usagePercent < 100 && '⚠️ Approaching budget limit'}
+                    {usagePercent >= 80 &&
+                        usagePercent < 100 &&
+                        '⚠️ Approaching budget limit'}
                     {usagePercent >= 100 && '🚨 Budget exceeded'}
                 </p>
             </div>
 
             {/* CHART + ACTIONS */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-lg shadow">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-6 rounded-xl shadow-sm">
                     <h2 className="text-lg font-semibold mb-4">
                         Expenses by Category
                     </h2>
                     {expenses.length > 0 ? (
                         <Pie data={pieData} />
                     ) : (
-                        <p>No data available</p>
+                        <p className="text-gray-400">
+                            No data available
+                        </p>
                     )}
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
+                <div className="bg-white p-6 rounded-xl shadow-sm">
                     <h2 className="text-lg font-semibold mb-4">
                         Quick Actions
                     </h2>
                     <div className="flex flex-col gap-4">
                         <button
                             onClick={() => navigate('/expenses')}
-                            className="py-2 bg-blue-100 text-blue-600 rounded"
+                            className="py-2 rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
                         >
                             View Full History
                         </button>
 
                         <button
                             onClick={() => navigate('/budget')}
-                            className="py-2 bg-green-100 text-green-600 rounded"
+                            className="py-2 rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition"
                         >
                             Set Monthly Budget
                         </button>
