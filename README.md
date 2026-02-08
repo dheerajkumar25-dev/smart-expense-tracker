@@ -6,13 +6,41 @@ The application focuses on **usability, visual clarity, and smooth interactions*
 
 ---
 
-## 🚀 Features
+## 🚀 Key Features
+
+- Secure authentication (JWT-based)
+- Interactive dashboard with charts & budget insights
+- Expense & budget management
+- Currency support (INR / USD / EUR)
+- PDF export of expenses
+- Fully responsive UI with dark mode
+- Smooth hover & micro-interactions
+
+---
+
+## 📸 Screenshots
 
 ### 🔐 Authentication
+![Login](screenshots/login.png)
+![Signup](screenshots/signup.png)
+
+### 📊 Dashboard
+![Dashboard Light](screenshots/dashboard-light.png)
+![Dashboard Dark](screenshots/dashboard-dark.png)
+
+### 💳 Expenses
+![Expenses](screenshots/expenses.png)
+
+### 💰 Budget
+![Budget](screenshots/budget.png)
+
+---
+
+## 🔐 Authentication
 - Secure JWT-based **Signup & Login**
 - Protected routes for authenticated users
 
-### 📊 Dashboard
+## 📊 Dashboard
 - Monthly budget overview
 - Total spent & remaining amount
 - Budget usage progress bar
@@ -21,7 +49,7 @@ The application focuses on **usability, visual clarity, and smooth interactions*
 - Currency selector (INR / USD / EUR)
 - Persistent dark mode
 
-### 💳 Expense Management
+## 💳 Expense Management
 - Add, edit, and delete expenses
 - Preset & custom categories
 - Monthly budget limit enforcement
@@ -31,14 +59,14 @@ The application focuses on **usability, visual clarity, and smooth interactions*
 - Smooth table row hover & slide effects
 - Fully dark-mode compatible UI
 
-### 💰 Budget Management
+## 💰 Budget Management
 - Set and update monthly budget
 - Real-time remaining / overspent calculation
 - Currency support
 - Hover-lift card animations
 - Dark-mode compatible UI
 
-### 🎨 UI / UX Enhancements
+## 🎨 UI / UX Enhancements
 - Global dark mode using Tailwind `dark` class
 - Hover lift effects on dashboard & budget cards
 - Sidebar hover slide animation
@@ -72,18 +100,4 @@ The application focuses on **usability, visual clarity, and smooth interactions*
 ---
 
 ## 📂 Project Structure
----
-
-## ⚙️ Getting Started
-
-### Prerequisites
-- Node.js installed
-- MongoDB running locally
-
-### 🔧 Installation
-
-#### 1️⃣ Clone the Repository
-```bash
-git clone https://github.com/<your-username>/smart-expense-tracker.git
-cd smart-expense-tracker
 
