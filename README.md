@@ -21,8 +21,8 @@ The application focuses on **usability, visual clarity, and smooth interactions*
 ## 📸 Screenshots
 
 ### 🔐 Authentication
-![Login](screenshots/login.png)
 ![Signup](screenshots/signup.png)
+![Login](screenshots/login.png)
 
 ### 📊 Dashboard
 ![Dashboard Light](screenshots/dashboard-light.png)
@@ -100,4 +100,22 @@ The application focuses on **usability, visual clarity, and smooth interactions*
 ---
 
 ## 📂 Project Structure
-
+```bash
+smart-expense-tracker/
+├── client/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── context/
+│   │   └── utils/
+│   └── package.json
+│
+├── server/
+│   ├── controllers/
+│   ├── routes/
+│   ├── models/
+│   └── server.js
+│
+├── screenshots/
+├── README.md
+└── .gitignore
